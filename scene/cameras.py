@@ -40,11 +40,12 @@ class Camera(nn.Module):
         self.image_width = self.original_image.shape[2]
         self.image_height = self.original_image.shape[1]
 
+        self.original_image = self.original_image.to(self.data_device) #ALE
         if gt_alpha_mask is not None:
-            # self.original_image *= gt_alpha_mask.to(self.data_device)
+            self.original_image *= gt_alpha_mask.to(self.data_device)
             self.gt_alpha_mask = gt_alpha_mask.to(self.data_device)
         else:
-            # self.original_image *= torch.ones((1, self.image_height, self.image_width), device=self.data_device) # do we need this?
+            self.original_image *= torch.ones((1, self.image_height, self.image_width), device=self.data_device) # do we need this?
             self.gt_alpha_mask = None
         
         self.zfar = 100.0

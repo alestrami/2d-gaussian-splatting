@@ -23,6 +23,8 @@ from plyfile import PlyData, PlyElement
 from utils.sh_utils import SH2RGB
 from scene.gaussian_model import BasicPointCloud
 
+import torch 
+
 class CameraInfo(NamedTuple):
     uid: int
     R: np.array
@@ -100,6 +102,7 @@ def readColmapCameras(cam_extrinsics, cam_intrinsics, images_folder):
 
         cam_info = CameraInfo(uid=uid, R=R, T=T, FovY=FovY, FovX=FovX, image=image,
                               image_path=image_path, image_name=image_name, width=width, height=height)
+        
         cam_infos.append(cam_info)
     sys.stdout.write('\n')
     return cam_infos
@@ -207,7 +210,12 @@ def readCamerasFromTransforms(path, transformsfile, white_background, extension=
 
             norm_data = im_data / 255.0
             arr = norm_data[:,:,:3] * norm_data[:, :, 3:4] + bg * (1 - norm_data[:, :, 3:4])
-            image = Image.fromarray(np.array(arr*255.0, dtype=np.byte), "RGB")
+            #image = Image.fromarray(np.array(arr*255.0, dtype=np.byte), "RGB")
+            #ALE
+            alpha = norm_data[:, :, 3:4]
+            rgba = np.concatenate([arr, alpha], axis=2)
+            image = Image.fromarray(np.array(rgba * 255.0, dtype=np.uint8), "RGBA")
+            #--
 
             fovy = focal2fov(fov2focal(fovx, image.size[0]), image.size[1])
             FovY = fovy 
@@ -242,6 +250,8 @@ def readNerfSyntheticInfo(path, white_background, eval, extension=".png"):
         pcd = BasicPointCloud(points=xyz, colors=SH2RGB(shs), normals=np.zeros((num_pts, 3)))
 
         storePly(ply_path, xyz, SH2RGB(shs) * 255)
+    else:
+        print(f"Found point3d.ply at {path}")
     try:
         pcd = fetchPly(ply_path)
     except:
