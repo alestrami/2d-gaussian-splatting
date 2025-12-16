@@ -217,6 +217,7 @@ def prepare_output_and_logger(args):
     tb_writer = None
     if TENSORBOARD_FOUND:
         tb_writer = SummaryWriter(args.model_path)
+        print("Found tensorboard, logging progress")
     else:
         print("Tensorboard not available: not logging progress")
     return tb_writer
